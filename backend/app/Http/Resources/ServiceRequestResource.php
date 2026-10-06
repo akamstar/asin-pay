@@ -30,6 +30,8 @@ class ServiceRequestResource extends JsonResource
             'currency' => 'XOF',
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
+            'is_payable' => $this->isPayable(),
+            'payment' => PaymentResource::make($this->whenLoaded('latestPayment')),
             'status_at' => $this->status_at->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
             'links' => [

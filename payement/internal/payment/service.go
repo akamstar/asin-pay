@@ -81,6 +81,7 @@ func (s *Service) Initiate(idempotencyKey string, req DebitRequest) (p Payment, 
 		Amount:            req.Amount,
 		Currency:          req.Currency,
 		Phone:             req.Phone,
+		Operator:          req.Operator,
 		Status:            StatusPending,
 		CreatedAt:         s.now().UTC(),
 	}

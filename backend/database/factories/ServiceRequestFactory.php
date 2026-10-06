@@ -33,4 +33,14 @@ class ServiceRequestFactory extends Factory
             'status_at' => now(),
         ];
     }
+
+    public function paymentInProgress(): static
+    {
+        return $this->state(fn (): array => ['status' => ServiceRequestStatus::PaymentInProgress]);
+    }
+
+    public function paid(): static
+    {
+        return $this->state(fn (): array => ['status' => ServiceRequestStatus::Paid]);
+    }
 }

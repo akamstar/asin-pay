@@ -24,6 +24,9 @@ const (
 // CurrencyXOF est la seule devise acceptée (franc CFA, sans décimales).
 const CurrencyXOF = "XOF"
 
+// Opérateurs de mobile money acceptés.
+var operators = map[string]bool{"MTN": true, "MOOV": true, "CELTIIS": true}
+
 // FailureReasonRefused est la raison d'échec renvoyée par le simulateur.
 const FailureReasonRefused = "TRANSACTION_REFUSEE"
 
@@ -37,6 +40,7 @@ type DebitRequest struct {
 	Amount            int64  `json:"amount"`
 	Currency          string `json:"currency"`
 	Phone             string `json:"phone"`
+	Operator          string `json:"operator"`
 }
 
 // Validate vérifie la requête et renvoie une *ValidationError listant chaque champ invalide.
@@ -59,6 +63,9 @@ func (r DebitRequest) Validate() error {
 	if !phonePattern.MatchString(r.Phone) {
 		errs["phone"] = "doit contenir 10 chiffres et commencer par 01"
 	}
+	if !operators[r.Operator] {
+		errs["operator"] = "opérateur inconnu (MTN, MOOV ou CELTIIS)"
+	}
 
 	if len(errs) > 0 {
 		return &ValidationError{Fields: errs}
@@ -68,8 +75,8 @@ func (r DebitRequest) Validate() error {
 
 // fingerprint identifie le contenu de la requête pour contrôler l'idempotence.
 func (r DebitRequest) fingerprint() string {
-	sum := sha256.Sum256(fmt.Appendf(nil, "%s|%d|%s|%s",
-		strings.TrimSpace(r.MerchantReference), r.Amount, r.Currency, r.Phone))
+	sum := sha256.Sum256(fmt.Appendf(nil, "%s|%d|%s|%s|%s",
+		strings.TrimSpace(r.MerchantReference), r.Amount, r.Currency, r.Phone, r.Operator))
 	return hex.EncodeToString(sum[:])
 }
 
@@ -80,6 +87,7 @@ type Payment struct {
 	Amount            int64      `json:"amount"`
 	Currency          string     `json:"currency"`
 	Phone             string     `json:"phone"`
+	Operator          string     `json:"operator"`
 	Status            Status     `json:"status"`
 	FailureReason     string     `json:"failure_reason,omitempty"`
 	CreatedAt         time.Time  `json:"created_at"`

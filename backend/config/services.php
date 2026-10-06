@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    /*
+    | Service de paiement (simulateur Go). Ses réponses et webhooks sont signés
+    | en Ed25519 : on ne détient que la clé publique de vérification.
+    */
+    'payment' => [
+        'base_url' => env('PAYMENT_BASE_URL', 'http://payement:8080'),
+        'api_key' => env('PAYMENT_API_KEY'),
+        'public_key' => env('PAYMENT_SIGNING_PUBLIC_KEY'),
+        'key_id' => env('PAYMENT_SIGNING_KEY_ID', 'payement-dev'),
+        'timeout' => (int) env('PAYMENT_TIMEOUT', 5),
+        'signature_tolerance' => (int) env('PAYMENT_SIGNATURE_TOLERANCE', 300),
+        // Un paiement sans résultat depuis ce délai (secondes) est réconcilié auprès du service.
+        'reconcile_after' => (int) env('PAYMENT_RECONCILE_AFTER', 120),
+    ],
+
 ];

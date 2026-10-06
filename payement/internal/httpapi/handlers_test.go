@@ -68,7 +68,7 @@ func (a *testAPI) postPayment(body, idemKey string) *httptest.ResponseRecorder {
 	return a.do(call{method: http.MethodPost, path: "/api/v1/payments", body: body, apiKey: testAPIKey, idemKey: idemKey})
 }
 
-const validBody = `{"merchant_reference":"DEM-001","amount":7600,"currency":"XOF","phone":"0102030405"}`
+const validBody = `{"merchant_reference":"DEM-001","amount":7600,"currency":"XOF","phone":"0102030405","operator":"MTN"}`
 
 func decodeError(t *testing.T, rec *httptest.ResponseRecorder) errorPayload {
 	t.Helper()
@@ -143,8 +143,8 @@ func TestCreatePaymentErrors(t *testing.T) {
 		{"sans Idempotency-Key", call{method: http.MethodPost, path: "/api/v1/payments", body: validBody, apiKey: testAPIKey}, http.StatusBadRequest, "INVALID_IDEMPOTENCY_KEY"},
 		{"JSON mal formé", call{method: http.MethodPost, path: "/api/v1/payments", body: `{"amount":`, apiKey: testAPIKey, idemKey: "k"}, http.StatusBadRequest, "INVALID_JSON"},
 		{"corps vide", call{method: http.MethodPost, path: "/api/v1/payments", body: ``, apiKey: testAPIKey, idemKey: "k"}, http.StatusBadRequest, "INVALID_JSON"},
-		{"montant décimal", call{method: http.MethodPost, path: "/api/v1/payments", body: `{"merchant_reference":"D","amount":10.5,"currency":"XOF","phone":"0102030405"}`, apiKey: testAPIKey, idemKey: "k"}, http.StatusUnprocessableEntity, "VALIDATION_FAILED"},
-		{"téléphone invalide", call{method: http.MethodPost, path: "/api/v1/payments", body: `{"merchant_reference":"D","amount":100,"currency":"XOF","phone":"0702030405"}`, apiKey: testAPIKey, idemKey: "k"}, http.StatusUnprocessableEntity, "VALIDATION_FAILED"},
+		{"montant décimal", call{method: http.MethodPost, path: "/api/v1/payments", body: `{"merchant_reference":"D","amount":10.5,"currency":"XOF","phone":"0102030405","operator":"MTN"}`, apiKey: testAPIKey, idemKey: "k"}, http.StatusUnprocessableEntity, "VALIDATION_FAILED"},
+		{"téléphone invalide", call{method: http.MethodPost, path: "/api/v1/payments", body: `{"merchant_reference":"D","amount":100,"currency":"XOF","phone":"0702030405","operator":"MTN"}`, apiKey: testAPIKey, idemKey: "k"}, http.StatusUnprocessableEntity, "VALIDATION_FAILED"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -162,10 +162,10 @@ func TestCreatePaymentErrors(t *testing.T) {
 
 func TestCreatePaymentValidationDetailsListFields(t *testing.T) {
 	a := newTestAPI(t)
-	rec := a.postPayment(`{"merchant_reference":"","amount":0,"currency":"EUR","phone":"123"}`, "key-1")
+	rec := a.postPayment(`{"merchant_reference":"","amount":0,"currency":"EUR","phone":"123","operator":"X"}`, "key-1")
 
 	details := decodeError(t, rec).Details
-	for _, field := range []string{"merchant_reference", "amount", "currency", "phone"} {
+	for _, field := range []string{"merchant_reference", "amount", "currency", "phone", "operator"} {
 		if _, ok := details[field]; !ok {
 			t.Errorf("champ %q absent des détails : %v", field, details)
 		}

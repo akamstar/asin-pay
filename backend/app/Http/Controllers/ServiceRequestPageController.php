@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentOperator;
+use App\Http\Resources\ServiceRequestResource;
 use App\Http\Resources\ServiceResource;
 use App\Models\Service;
 use App\Models\ServiceRequest;
@@ -22,12 +24,17 @@ class ServiceRequestPageController extends Controller
     }
 
     /**
-     * Récapitulatif d'une demande et montant à payer.
+     * Récapitulatif d'une demande, montant à payer et paiement.
      */
     public function show(ServiceRequest $serviceRequest): View
     {
+        $serviceRequest->load(['service', 'latestPayment']);
+
         return view('service-requests.show', [
-            'serviceRequest' => $serviceRequest->load('service'),
+            'serviceRequest' => $serviceRequest,
+            // État initial du composant de paiement : même format que l'API interrogée ensuite.
+            'state' => ServiceRequestResource::make($serviceRequest)->resolve(),
+            'operators' => PaymentOperator::options(),
         ]);
     }
 }

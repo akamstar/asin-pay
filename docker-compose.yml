@@ -21,6 +21,11 @@ x-backend-env: &backend-env
   QUEUE_CONNECTION: database
   FRAIS_DOSSIER: ${FRAIS_DOSSIER:-100}
   DEMANDE_QUANTITE_MAX: ${DEMANDE_QUANTITE_MAX:-10}
+  PAYMENT_BASE_URL: http://payement:8080
+  PAYMENT_API_KEY: ${PAYMENT_API_KEY:?PAYMENT_API_KEY manquant}
+  PAYMENT_SIGNING_PUBLIC_KEY: ${PAYMENT_SIGNING_PUBLIC_KEY:?PAYMENT_SIGNING_PUBLIC_KEY manquant}
+  PAYMENT_SIGNING_KEY_ID: ${PAYMENT_SIGNING_KEY_ID:-payement-dev}
+  PAYMENT_RECONCILE_AFTER: ${PAYMENT_RECONCILE_AFTER:-120}
 
 services:
   postgres:
@@ -58,6 +63,40 @@ services:
       AUTORUN_LARAVEL_MIGRATION_SEED: "true"
       # Sonde de l'image de base pointée sur la route santé de Laravel
       HEALTHCHECK_PATH: /up
+
+  # Worker de la file d'attente : transmet les paiements au service Go
+  queue:
+    build:
+      context: ./backend
+      target: production
+    restart: unless-stopped
+    command: ["php", "artisan", "queue:work", "--tries=5", "--max-time=3600"]
+    stop_signal: SIGTERM
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      <<: *backend-env
+    healthcheck:
+      test: ["CMD", "healthcheck-queue"]
+      start_period: 10s
+
+  # Planificateur : réconciliation des paiements restés en cours (webhook perdu)
+  scheduler:
+    build:
+      context: ./backend
+      target: production
+    restart: unless-stopped
+    command: ["php", "artisan", "schedule:work"]
+    stop_signal: SIGTERM
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      <<: *backend-env
+    healthcheck:
+      test: ["CMD", "healthcheck-schedule"]
+      start_period: 10s
 
   # Tests PHPUnit sur PostgreSQL : docker compose run --rm backend-test
   backend-test:

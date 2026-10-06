@@ -28,10 +28,10 @@ class ServiceRequestController extends Controller
     }
 
     /**
-     * Consulte une demande par sa référence publique.
+     * Consulte une demande par sa référence publique (utilisé aussi pour suivre le paiement).
      */
     public function show(ServiceRequest $serviceRequest): ServiceRequestResource
     {
-        return ServiceRequestResource::make($serviceRequest->load('service'));
+        return ServiceRequestResource::make($serviceRequest->load(['service', 'latestPayment']));
     }
 }

@@ -7,7 +7,7 @@ import (
 )
 
 func validRequest() DebitRequest {
-	return DebitRequest{MerchantReference: "DEM-001", Amount: 7600, Currency: CurrencyXOF, Phone: "0102030405"}
+	return DebitRequest{MerchantReference: "DEM-001", Amount: 7600, Currency: CurrencyXOF, Phone: "0102030405", Operator: "MTN"}
 }
 
 func TestDebitRequestValidate(t *testing.T) {
@@ -27,6 +27,8 @@ func TestDebitRequestValidate(t *testing.T) {
 		{"téléphone trop long", func(r *DebitRequest) { r.Phone = "01020304050" }, "phone"},
 		{"téléphone non numérique", func(r *DebitRequest) { r.Phone = "01020304ab" }, "phone"},
 		{"téléphone avec indicatif", func(r *DebitRequest) { r.Phone = "+2250102030405" }, "phone"},
+		{"opérateur absent", func(r *DebitRequest) { r.Operator = "" }, "operator"},
+		{"opérateur inconnu", func(r *DebitRequest) { r.Operator = "ORANGE" }, "operator"},
 	}
 
 	for _, tt := range tests {
@@ -97,5 +99,10 @@ func TestFingerprintDependsOnContent(t *testing.T) {
 	b.Amount++
 	if a.fingerprint() == b.fingerprint() {
 		t.Fatal("deux requêtes différentes doivent avoir des empreintes différentes")
+	}
+	c := validRequest()
+	c.Operator = "MOOV"
+	if a.fingerprint() == c.fingerprint() {
+		t.Fatal("l'opérateur doit faire partie de l'empreinte d'idempotence")
 	}
 }

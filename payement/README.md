@@ -46,7 +46,7 @@ curl -i -X POST http://localhost:8080/api/v1/payments \
   -H "X-Api-Key: dev-api-key-a-changer" \
   -H "Idempotency-Key: DEM-001-1" \
   -H "Content-Type: application/json" \
-  -d '{"merchant_reference":"DEM-001","amount":7600,"currency":"XOF","phone":"0102030405"}'
+  -d '{"merchant_reference":"DEM-001","amount":7600,"currency":"XOF","phone":"0102030405","operator":"MTN"}'
 ```
 
 | Code | Cas |
@@ -56,7 +56,7 @@ curl -i -X POST http://localhost:8080/api/v1/payments \
 | `400` | `Idempotency-Key` absente, JSON mal formé |
 | `401` | Clé d'API absente ou invalide |
 | `409` | Même clé d'idempotence avec un contenu différent |
-| `422` | Validation : `amount` entier > 0, `currency` = `XOF`, `phone` = `^01\d{8}$`, `merchant_reference` obligatoire (64 caractères max.) |
+| `422` | Validation : `amount` entier > 0, `currency` = `XOF`, `phone` = `^01\d{8}$`, `operator` parmi `MTN`, `MOOV`, `CELTIIS`, `merchant_reference` obligatoire (64 caractères max.) |
 
 ### `GET /api/v1/payments/{id}` : réconciliation
 
