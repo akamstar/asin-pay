@@ -1,0 +1,19 @@
+name: paiement-asin
+
+services:
+  payement:
+    build:
+      context: ./payement
+    restart: unless-stopped
+    ports:
+      - "${PAYMENT_PORT:-8080}:8080"
+    environment:
+      PORT: "8080"
+      API_KEY: ${PAYMENT_API_KEY:?PAYMENT_API_KEY manquant (copier .env.example en .env)}
+      WEBHOOK_URL: ${PAYMENT_WEBHOOK_URL:-http://backend:8000/api/v1/webhooks/paiement}
+      SIGNING_PRIVATE_KEY: ${PAYMENT_SIGNING_PRIVATE_KEY:?PAYMENT_SIGNING_PRIVATE_KEY manquant}
+      SIGNING_KEY_ID: ${PAYMENT_SIGNING_KEY_ID:-payement-dev}
+      MIN_DELAY: ${PAYMENT_MIN_DELAY:-3s}
+      MAX_DELAY: ${PAYMENT_MAX_DELAY:-10s}
+      WEBHOOK_MAX_ATTEMPTS: ${PAYMENT_WEBHOOK_MAX_ATTEMPTS:-3}
+      WEBHOOK_BACKOFF: ${PAYMENT_WEBHOOK_BACKOFF:-1s}
