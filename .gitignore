@@ -1,0 +1,15 @@
+# Environnements locaux
+.env
+*.env.local
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Binaires Go
+/payement/bin/
+*.exe
+*.test
+*.out
